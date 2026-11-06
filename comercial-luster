@@ -1,0 +1,1482 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  LayoutDashboard,
+  Table as TableIcon,
+  Kanban,
+  TrendingUp,
+  Calculator,
+  Plus,
+  Search,
+  Filter,
+  Download,
+  RotateCcw,
+  Edit3,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  DollarSign,
+  Building,
+  MapPin,
+  FileText,
+  Check,
+  X,
+  Layers,
+  ArrowUpRight,
+  BarChart3,
+  PieChart,
+  Users,
+  Target,
+  Sparkles,
+  Percent
+} from 'lucide-react';
+
+// ==========================================
+// 1. BASE HISTÓRICA E DADOS REAIS DA PLANILHA
+// ==========================================
+
+const HISTORICAL_DATA = [
+  { ano: 2022, orcamentos: 27, orcado: 101800.00, vendas: 8, faturadoDireto: 23150.00, planoAnual: 0.00, vendido: 23150.00, meta: 60000.00, m2: 1370, ticketMedio: 2893.75, convR: 22.74, convQtd: 29.63, rPorM2: 16.90 },
+  { ano: 2023, orcamentos: 71, orcado: 295000.00, vendas: 36, faturadoDireto: 107200.00, planoAnual: 34000.00, vendido: 141200.00, meta: 120000.00, m2: 2263, ticketMedio: 3922.22, convR: 47.86, convQtd: 50.70, rPorM2: 62.39 },
+  { ano: 2024, orcamentos: 73, orcado: 405293.01, vendas: 30, faturadoDireto: 77127.00, planoAnual: 0.00, vendido: 77127.00, meta: 240000.00, m2: 3598, ticketMedio: 2570.90, convR: 19.03, convQtd: 41.10, rPorM2: 21.44 },
+  { ano: 2025, orcamentos: 76, orcado: 361557.38, vendas: 28, faturadoDireto: 57761.53, planoAnual: 45416.67, vendido: 103178.19, meta: 150000.00, m2: 4876, ticketMedio: 3684.94, convR: 28.54, convQtd: 36.84, rPorM2: 21.16 },
+  { ano: 2026, orcamentos: 53, orcado: 350908.77, vendas: 24, faturadoDireto: 101748.55, planoAnual: 30250.00, vendido: 131998.55, meta: 120000.00, m2: 6379, ticketMedio: 5499.94, convR: 37.62, convQtd: 45.28, rPorM2: 20.69 }
+];
+
+const INITIAL_DEALS = [
+  // --- 2026: Propostas Reais da Planilha ---
+  { id: 101, ano: 2026, cliente: "Hospital de Olhos", cidade: "Araguaína", competencia: "JAN", m2: 5000, m2Estimado: false, valorRevit: 2750.00, valorPlanoAnual: 30250.00, valorTotal: 33000.00, vendaEfetiva: true, nf: false, status: "Contrato Fechado", vendedor: "Max", servico: "Revitalização ACM (Plano Anual)", data: "2026-01-15" },
+  { id: 102, ano: 2026, cliente: "Shopping Lago Center", cidade: "Araguaína", competencia: "JAN", m2: 2900, m2Estimado: true, valorRevit: 48000.00, valorPlanoAnual: 0.00, valorTotal: 48000.00, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Limpeza de Fachada", data: "2026-01-22" },
+  { id: 103, ano: 2026, cliente: "Revemar Colinas", cidade: "Colinas", competencia: "FEV", m2: 25, m2Estimado: false, valorRevit: 5100.00, valorPlanoAnual: 0.00, valorTotal: 5100.00, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Revitalização ACM + Iluminação", data: "2026-02-10" },
+  { id: 104, ano: 2026, cliente: "Hotel Premier", cidade: "Araguaína", competencia: "FEV", m2: 85, m2Estimado: false, valorRevit: 1000.00, valorPlanoAnual: 0.00, valorTotal: 1000.00, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Limpeza de Fachada", data: "2026-02-24" },
+  { id: 105, ano: 2026, cliente: "Tins Mania", cidade: "Araguaína", competencia: "ABR", m2: 360, m2Estimado: false, valorRevit: 6252.46, valorPlanoAnual: 0.00, valorTotal: 6252.46, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Limpeza ACM", data: "2026-04-12" },
+  { id: 106, ano: 2026, cliente: "Posto Imperador", cidade: "Araguaína", competencia: "ABR", m2: 70, m2Estimado: false, valorRevit: 1100.00, valorPlanoAnual: 0.00, valorTotal: 1100.00, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Manutenção Iluminação", data: "2026-04-20" },
+  { id: 107, ano: 2026, cliente: "Pães Aliança", cidade: "Araguaína", competencia: "MAI", m2: 44, m2Estimado: false, valorRevit: 5986.98, valorPlanoAnual: 0.00, valorTotal: 5986.98, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Revitalização + Reforma letras", data: "2026-05-04" },
+  { id: 108, ano: 2026, cliente: "Revemar Tocantinópolis", cidade: "Tocantinópolis", competencia: "MAI", m2: 25, m2Estimado: false, valorRevit: 4950.00, valorPlanoAnual: 0.00, valorTotal: 4950.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2026-05-11" },
+  { id: 109, ano: 2026, cliente: "Hospital de Olhos (Avulso)", cidade: "Araguaína", competencia: "MAI", m2: 0, m2Estimado: false, valorRevit: 11500.00, valorPlanoAnual: 0.00, valorTotal: 11500.00, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Limpeza porcelanato + vidros", data: "2026-05-18" },
+  { id: 110, ano: 2026, cliente: "Farmácia FarmaVida", cidade: "Araguaína", competencia: "MAI", m2: 30, m2Estimado: false, valorRevit: 2450.00, valorPlanoAnual: 0.00, valorTotal: 2450.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2026-05-22" },
+  { id: 111, ano: 2026, cliente: "Clínica Médica Vida", cidade: "Araguaína", competencia: "MAI", m2: 40, m2Estimado: false, valorRevit: 1800.00, valorPlanoAnual: 0.00, valorTotal: 1800.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Limpeza de Fachada", data: "2026-05-26" },
+  { id: 112, ano: 2026, cliente: "Auto Center Tocantins", cidade: "Araguaína", competencia: "MAI", m2: 20, m2Estimado: false, valorRevit: 1200.00, valorPlanoAnual: 0.00, valorTotal: 1200.00, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Troca lâmpadas LED", data: "2026-05-29" },
+  { id: 113, ano: 2026, cliente: "Nosso Lar", cidade: "Araguaína", competencia: "JUN", m2: 120, m2Estimado: false, valorRevit: 7000.00, valorPlanoAnual: 0.00, valorTotal: 7000.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Revitalização ACM + Vidros", data: "2026-06-03" },
+  { id: 114, ano: 2026, cliente: "Supermercado Real", cidade: "Palmas", competencia: "JUN", m2: 0, m2Estimado: false, valorRevit: 9097.39, valorPlanoAnual: 0.00, valorTotal: 9097.39, vendaEfetiva: false, nf: false, status: "Em Negociação", vendedor: "Max", servico: "Revitalização ACM + repintura letras", data: "2026-06-08" },
+  { id: 115, ano: 2026, cliente: "Pague Menos 403S", cidade: "Palmas", competencia: "JUN", m2: 0, m2Estimado: false, valorRevit: 9674.26, valorPlanoAnual: 0.00, valorTotal: 9674.26, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Manutenção Iluminação", data: "2026-06-12" },
+  { id: 116, ano: 2026, cliente: "Agro Minas", cidade: "Araguaína", competencia: "JUN", m2: 65, m2Estimado: false, valorRevit: 4269.72, valorPlanoAnual: 0.00, valorTotal: 4269.72, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Polimento de Vidros", data: "2026-06-15" },
+  { id: 117, ano: 2026, cliente: "Nosso Lar Taquaralto", cidade: "Palmas", competencia: "JUN", m2: 120, m2Estimado: false, valorRevit: 7000.00, valorPlanoAnual: 0.00, valorTotal: 7000.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Manutenção ACM + repintura letras", data: "2026-06-18" },
+  { id: 118, ano: 2026, cliente: "Nosso Lar São Geraldo", cidade: "São Geraldo - PA", competencia: "JUN", m2: 80, m2Estimado: false, valorRevit: 7000.00, valorPlanoAnual: 0.00, valorTotal: 7000.00, vendaEfetiva: true, nf: true, status: "Contrato Fechado", vendedor: "Max", servico: "Revitalização ACM + Vidros", data: "2026-06-25" },
+  { id: 119, ano: 2026, cliente: "Posto Alvorada", cidade: "Araguaína", competencia: "JUN", m2: 0, m2Estimado: false, valorRevit: 15000.00, valorPlanoAnual: 0.00, valorTotal: 15000.00, vendaEfetiva: false, nf: false, status: "Perdido", vendedor: "Max", servico: "Limpeza de Fachada", data: "2026-06-27" },
+  { id: 120, ano: 2026, cliente: "Revemar Araguatins", cidade: "Araguatins", competencia: "JUL", m2: 15, m2Estimado: false, valorRevit: 4500.00, valorPlanoAnual: 0.00, valorTotal: 4500.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Repintura de Letras", data: "2026-07-06" },
+  { id: 121, ano: 2026, cliente: "Consultório Dr. Marcelo", cidade: "Araguaína", competencia: "JUL", m2: 10, m2Estimado: false, valorRevit: 700.00, valorPlanoAnual: 0.00, valorTotal: 700.00, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Polimento de Vidros", data: "2026-07-14" },
+  { id: 122, ano: 2026, cliente: "Óticas Luz do Sol", cidade: "Araguaína", competencia: "AGO", m2: 90, m2Estimado: false, valorRevit: 4256.84, valorPlanoAnual: 0.00, valorTotal: 4256.84, vendaEfetiva: true, nf: true, status: "Contrato Fechado", vendedor: "Max", servico: "Manutenção ACM", data: "2026-08-05" },
+  { id: 123, ano: 2026, cliente: "Posto Rodoviário", cidade: "Araguaína", competencia: "AGO", m2: 40, m2Estimado: false, valorRevit: 2100.00, valorPlanoAnual: 0.00, valorTotal: 2100.00, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2026-08-19" },
+  { id: 124, ano: 2026, cliente: "Nosso Lar Passarela", cidade: "Araguaína", competencia: "SET", m2: 80, m2Estimado: false, valorRevit: 3000.00, valorPlanoAnual: 0.00, valorTotal: 3000.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Manutenção ACM", data: "2026-09-02" },
+  { id: 125, ano: 2026, cliente: "Revemar Araguaína", cidade: "Araguaína", competencia: "SET", m2: 60, m2Estimado: false, valorRevit: 9000.00, valorPlanoAnual: 0.00, valorTotal: 9000.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Plotagem Painel + Letras", data: "2026-09-14" },
+  { id: 126, ano: 2026, cliente: "Consultório Odontológico", cidade: "Araguaína", competencia: "SET", m2: 25, m2Estimado: false, valorRevit: 1550.00, valorPlanoAnual: 0.00, valorTotal: 1550.00, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Limpeza de Fachada", data: "2026-09-22" },
+  { id: 127, ano: 2026, cliente: "Nosso Lar Balsas (Orç.)", cidade: "Balsas - MA", competencia: "SET", m2: 0, m2Estimado: false, valorRevit: 15500.00, valorPlanoAnual: 0.00, valorTotal: 15500.00, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2026-09-27" },
+  { id: 128, ano: 2026, cliente: "Nosso Lar Balsas", cidade: "Balsas - MA", competencia: "OUT", m2: 90, m2Estimado: false, valorRevit: 12000.00, valorPlanoAnual: 0.00, valorTotal: 12000.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Manutenção ACM", data: "2026-10-06" },
+  { id: 129, ano: 2026, cliente: "Laboratório Alfa", cidade: "Araguaína", competencia: "OUT", m2: 90, m2Estimado: false, valorRevit: 4782.55, valorPlanoAnual: 0.00, valorTotal: 4782.55, vendaEfetiva: true, nf: false, status: "Contrato Fechado", vendedor: "Panda", servico: "Revitalização ACM", data: "2026-10-14" },
+  { id: 130, ano: 2026, cliente: "Loja Requinte Modas", cidade: "Araguaína", competencia: "OUT", m2: 35, m2Estimado: false, valorRevit: 2000.00, valorPlanoAnual: 0.00, valorTotal: 2000.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Polimento de Vidros", data: "2026-10-21" },
+  { id: 131, ano: 2026, cliente: "TopFama Porto Franco", cidade: "Porto Franco - MA", competencia: "OUT", m2: 0, m2Estimado: false, valorRevit: 9142.58, valorPlanoAnual: 0.00, valorTotal: 9142.58, vendaEfetiva: false, nf: false, status: "Em Negociação", vendedor: "Pablo", servico: "Manutenção Painel Solar", data: "2026-10-28" },
+  
+  // Pipeline de Novembro/2026 em aberto
+  { id: 132, ano: 2026, cliente: "Terrafos Araguaína (ACM)", cidade: "Araguaína", competencia: "NOV", m2: 180, m2Estimado: true, valorRevit: 9868.63, valorPlanoAnual: 0.00, valorTotal: 9868.63, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2026-11-01" },
+  { id: 133, ano: 2026, cliente: "Terrafos Araguaína (Limp.)", cidade: "Araguaína", competencia: "NOV", m2: 180, m2Estimado: true, valorRevit: 4990.08, valorPlanoAnual: 0.00, valorTotal: 4990.08, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Limpeza de Fachada", data: "2026-11-01" },
+  { id: 134, ano: 2026, cliente: "Terrafos Colinas (ACM)", cidade: "Colinas", competencia: "NOV", m2: 140, m2Estimado: true, valorRevit: 7720.05, valorPlanoAnual: 0.00, valorTotal: 7720.05, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2026-11-02" },
+  { id: 135, ano: 2026, cliente: "Terrafos Colinas (Limp.)", cidade: "Colinas", competencia: "NOV", m2: 140, m2Estimado: true, valorRevit: 3626.02, valorPlanoAnual: 0.00, valorTotal: 3626.02, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Limpeza de Fachada", data: "2026-11-02" },
+  { id: 136, ano: 2026, cliente: "Ferpam Araguaína (Acrílico)", cidade: "Araguaína", competencia: "NOV", m2: 50, m2Estimado: false, valorRevit: 2600.00, valorPlanoAnual: 0.00, valorTotal: 2600.00, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Troca acrílico luminoso + lâmpadas", data: "2026-11-04" },
+  { id: 137, ano: 2026, cliente: "Ferpam Araguaína (ACM)", cidade: "Araguaína", competencia: "NOV", m2: 120, m2Estimado: true, valorRevit: 6398.06, valorPlanoAnual: 0.00, valorTotal: 6398.06, vendaEfetiva: false, nf: false, status: "Orçamento Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2026-11-04" },
+
+  // --- 2025: Amostra Selecionada da Planilha (para histórico completo) ---
+  { id: 201, ano: 2025, cliente: "Hospital de Olhos (2025)", cidade: "Araguaína", competencia: "JAN", m2: 4500, m2Estimado: false, valorRevit: 3000.00, valorPlanoAnual: 45416.67, valorTotal: 48416.67, vendaEfetiva: true, nf: true, status: "Contrato Fechado", vendedor: "Max", servico: "Revitalização ACM (Plano Anual)", data: "2025-01-10" },
+  { id: 202, ano: 2025, cliente: "J Demito Calcário", cidade: "Araguaína", competencia: "JUL", m2: 60, m2Estimado: false, valorRevit: 2195.15, valorPlanoAnual: 0.00, valorTotal: 2195.15, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2025-07-15" },
+  { id: 203, ano: 2025, cliente: "Escola Futuro Feliz", cidade: "Araguaína", competencia: "NOV", m2: 80, m2Estimado: false, valorRevit: 2100.00, valorPlanoAnual: 0.00, valorTotal: 2100.00, vendaEfetiva: true, nf: false, status: "Serviço Entregue", vendedor: "Max", servico: "Limpeza de Fachada", data: "2025-11-12" },
+  { id: 204, ano: 2025, cliente: "Detran Tocantins", cidade: "Araguaína", competencia: "AGO", m2: 25, m2Estimado: false, valorRevit: 3200.00, valorPlanoAnual: 0.00, valorTotal: 3200.00, vendaEfetiva: true, nf: true, status: "Serviço Entregue", vendedor: "Max", servico: "Revitalização ACM", data: "2025-08-20" }
+];
+
+const MONTHS = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+const STATUSES = ["Orçamento Entregue", "Em Negociação", "Contrato Fechado", "Serviço Entregue", "Perdido"];
+const SELLERS = ["Max", "Panda", "Pablo", "Indicação"];
+const SERVICES = [
+  "Revitalização ACM",
+  "Revitalização ACM (Plano Anual)",
+  "Limpeza de Fachada",
+  "Manutenção Iluminação",
+  "Polimento de Vidros",
+  "Repintura de Letras",
+  "Outros"
+];
+
+// Utilitário para formatar Real Brasileiro
+const formatBRL = (val) => {
+  return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+};
+
+// ==========================================
+// COMPONENTE PRINCIPAL
+// ==========================================
+export default function App() {
+  // Estado principal dos negócios com persistência LocalStorage
+  const [deals, setDeals] = useState(() => {
+    try {
+      const saved = localStorage.getItem('luster_deals_v2');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return INITIAL_DEALS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('luster_deals_v2', JSON.stringify(deals));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [deals]);
+
+  // Controles de Visualização e Filtros
+  const [currentTab, setCurrentTab] = useState('dashboard'); // 'dashboard' | 'table' | 'kanban' | 'simulator' | 'history'
+  const [selectedYear, setSelectedYear] = useState('2026');
+  const [filterMonth, setFilterMonth] = useState('TODOS');
+  const [filterStatus, setFilterStatus] = useState('TODOS');
+  const [filterSeller, setFilterSeller] = useState('TODOS');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Estado do Modal de Cadastro/Edição
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDealId, setEditingDealId] = useState(null);
+  const [formData, setFormData] = useState({
+    cliente: '',
+    cidade: 'Araguaína',
+    competencia: 'NOV',
+    ano: 2026,
+    m2: 50,
+    m2Estimado: false,
+    valorRevit: 5000,
+    valorPlanoAnual: 0,
+    status: 'Orçamento Entregue',
+    vendaEfetiva: false,
+    nf: false,
+    vendedor: 'Max',
+    servico: 'Revitalização ACM',
+    data: new Date().toISOString().split('T')[0]
+  });
+
+  // Notificações Toast
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  // Restaurar dados originais
+  const handleResetData = () => {
+    if (window.confirm("Deseja realmente restaurar os dados originais da planilha? Todas as alterações salvas serão substituídas.")) {
+      setDeals(INITIAL_DEALS);
+      showToast("Dados originais da planilha restaurados com sucesso!");
+    }
+  };
+
+  // Filtragem dos registros
+  const filteredDeals = useMemo(() => {
+    return deals.filter(item => {
+      if (selectedYear !== 'TODOS' && item.ano !== Number(selectedYear)) return false;
+      if (filterMonth !== 'TODOS' && item.competencia !== filterMonth) return false;
+      if (filterStatus !== 'TODOS' && item.status !== filterStatus) return false;
+      if (filterSeller !== 'TODOS' && item.vendedor !== filterSeller) return false;
+      if (searchTerm.trim() !== '') {
+        const query = searchTerm.toLowerCase();
+        const matchClient = item.cliente?.toLowerCase().includes(query);
+        const matchCity = item.cidade?.toLowerCase().includes(query);
+        const matchService = item.servico?.toLowerCase().includes(query);
+        if (!matchClient && !matchCity && !matchService) return false;
+      }
+      return true;
+    });
+  }, [deals, selectedYear, filterMonth, filterStatus, filterSeller, searchTerm]);
+
+  // Cálculos de Indicadores Chave (sem dupla contagem!)
+  const stats = useMemo(() => {
+    const list = filteredDeals;
+    const totalOrcamentos = list.length;
+    const totalOrcado = list.reduce((acc, d) => acc + (Number(d.valorTotal) || 0), 0);
+    
+    // Vendas fechadas
+    const vendasFechadas = list.filter(d => d.vendaEfetiva);
+    const qtdVendas = vendasFechadas.length;
+    const totalVendido = vendasFechadas.reduce((acc, d) => acc + (Number(d.valorTotal) || 0), 0);
+    const totalPlanoAnual = vendasFechadas.reduce((acc, d) => acc + (Number(d.valorPlanoAnual) || 0), 0);
+    const faturadoDireto = totalVendido - totalPlanoAnual;
+
+    // Metragem vendida
+    const m2Vendido = vendasFechadas.reduce((acc, d) => acc + (Number(d.m2) || 0), 0);
+    
+    // Vendas com NF vs Sem NF
+    const vendasComNF = vendasFechadas.filter(d => d.nf);
+    const totalComNF = vendasComNF.reduce((acc, d) => acc + (Number(d.valorTotal) || 0), 0);
+    const impostoSimples = totalComNF * 0.06; // Simples Nacional a 6%
+
+    // Taxas corrigidas sem dupla contagem
+    const ticketMedio = qtdVendas > 0 ? totalVendido / qtdVendas : 0;
+    const convValorPct = totalOrcado > 0 ? (totalVendido / totalOrcado) * 100 : 0;
+    const convVolumePct = totalOrcamentos > 0 ? (qtdVendas / totalOrcamentos) * 100 : 0;
+    const reaisPorM2 = m2Vendido > 0 ? totalVendido / m2Vendido : 0;
+
+    // Meta anual de 2026: R$ 120.000
+    const metaAnual = 120000.00;
+    const atingimentoMetaPct = (totalVendido / metaAnual) * 100;
+
+    return {
+      totalOrcamentos,
+      totalOrcado,
+      qtdVendas,
+      totalVendido,
+      totalPlanoAnual,
+      faturadoDireto,
+      m2Vendido,
+      vendasComNFCount: vendasComNF.length,
+      totalComNF,
+      impostoSimples,
+      ticketMedio,
+      convValorPct,
+      convVolumePct,
+      reaisPorM2,
+      metaAnual,
+      atingimentoMetaPct
+    };
+  }, [filteredDeals]);
+
+  // Toggle rápido de Venda Efetiva
+  const handleToggleVenda = (id) => {
+    setDeals(prev => prev.map(d => {
+      if (d.id === id) {
+        const nextState = !d.vendaEfetiva;
+        return {
+          ...d,
+          vendaEfetiva: nextState,
+          status: nextState ? (d.status === 'Orçamento Entregue' ? 'Serviço Entregue' : d.status) : 'Orçamento Entregue'
+        };
+      }
+      return d;
+    }));
+    showToast("Status de venda atualizado.");
+  };
+
+  // Toggle rápido de NF
+  const handleToggleNF = (id) => {
+    setDeals(prev => prev.map(d => (d.id === id ? { ...d, nf: !d.nf } : d)));
+    showToast("Status de Nota Fiscal alterado.");
+  };
+
+  // Exclusão
+  const handleDeleteDeal = (id) => {
+    if (window.confirm("Deseja realmente remover esta movimentação comercial?")) {
+      setDeals(prev => prev.filter(d => d.id !== id));
+      showToast("Registro excluído com sucesso.");
+    }
+  };
+
+  // Abrir Modal para criar novo
+  const handleOpenCreate = () => {
+    setEditingDealId(null);
+    setFormData({
+      cliente: '',
+      cidade: 'Araguaína',
+      competencia: 'NOV',
+      ano: 2026,
+      m2: 50,
+      m2Estimado: false,
+      valorRevit: 5000,
+      valorPlanoAnual: 0,
+      status: 'Orçamento Entregue',
+      vendaEfetiva: false,
+      nf: false,
+      vendedor: 'Max',
+      servico: 'Revitalização ACM',
+      data: new Date().toISOString().split('T')[0]
+    });
+    setIsModalOpen(true);
+  };
+
+  // Abrir Modal para editar
+  const handleOpenEdit = (deal) => {
+    setEditingDealId(deal.id);
+    setFormData({
+      cliente: deal.cliente,
+      cidade: deal.cidade,
+      competencia: deal.competencia,
+      ano: deal.ano,
+      m2: deal.m2,
+      m2Estimado: deal.m2Estimado || false,
+      valorRevit: deal.valorRevit,
+      valorPlanoAnual: deal.valorPlanoAnual,
+      status: deal.status,
+      vendaEfetiva: deal.vendaEfetiva,
+      nf: deal.nf,
+      vendedor: deal.vendedor,
+      servico: deal.servico,
+      data: deal.data || new Date().toISOString().split('T')[0]
+    });
+    setIsModalOpen(true);
+  };
+
+  // Salvar formulário
+  const handleSaveForm = (e) => {
+    e.preventDefault();
+    if (!formData.cliente.trim()) {
+      showToast("Por favor, preencha o nome do cliente.", "error");
+      return;
+    }
+
+    const valorTotalCalc = Number(formData.valorRevit || 0) + Number(formData.valorPlanoAnual || 0);
+
+    if (editingDealId) {
+      setDeals(prev => prev.map(d => {
+        if (d.id === editingDealId) {
+          return {
+            ...d,
+            ...formData,
+            valorTotal: valorTotalCalc
+          };
+        }
+        return d;
+      }));
+      showToast("Proposta comercial atualizada!");
+    } else {
+      const newDeal = {
+        id: Date.now(),
+        ...formData,
+        valorTotal: valorTotalCalc
+      };
+      setDeals(prev => [newDeal, ...prev]);
+      showToast("Novo negócio cadastrado com sucesso!");
+    }
+    setIsModalOpen(false);
+  };
+
+  // Exportar para CSV
+  const handleExportCSV = () => {
+    const headers = [
+      "ID", "Ano", "Competência", "Cliente", "Cidade", "Serviço", "M²", "M² Estimado",
+      "Valor Revit (R$)", "Plano Anual (R$)", "Valor Total (R$)", "Status", "Venda Efetiva", "NF Emitida", "Vendedor"
+    ];
+    const rows = filteredDeals.map(d => [
+      d.id,
+      d.ano,
+      d.competencia,
+      `"${d.cliente.replace(/"/g, '""')}"`,
+      `"${d.cidade.replace(/"/g, '""')}"`,
+      `"${d.servico.replace(/"/g, '""')}"`,
+      d.m2,
+      d.m2Estimado ? "Sim" : "Não",
+      d.valorRevit.toFixed(2),
+      d.valorPlanoAnual.toFixed(2),
+      d.valorTotal.toFixed(2),
+      `"${d.status}"`,
+      d.vendaEfetiva ? "Sim" : "Não",
+      d.nf ? "Sim" : "Não",
+      d.vendedor
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(";"), ...rows.map(e => e.join(";"))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `comercial_luster_${selectedYear}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Arquivo CSV exportado com sucesso!");
+  };
+
+  // Agrupamento Mensal para o Gráfico
+  const monthlyData = useMemo(() => {
+    return MONTHS.map(mes => {
+      const dealsMes = filteredDeals.filter(d => d.competencia === mes);
+      const orcado = dealsMes.reduce((acc, d) => acc + (Number(d.valorTotal) || 0), 0);
+      const vendido = dealsMes.filter(d => d.vendaEfetiva).reduce((acc, d) => acc + (Number(d.valorTotal) || 0), 0);
+      return { mes, orcado, vendido };
+    });
+  }, [filteredDeals]);
+
+  // Agrupamento por Categoria de Serviço
+  const serviceDistribution = useMemo(() => {
+    const map = {};
+    filteredDeals.forEach(d => {
+      const s = d.servico || "Outros";
+      const key = s.includes("Revitalização") ? "Revitalização ACM" :
+                  s.includes("Limpeza") ? "Limpeza de Fachada" :
+                  s.includes("Iluminação") || s.includes("LED") ? "Iluminação / LEDs" :
+                  s.includes("Vidros") ? "Polimento Vidros" : "Outros";
+      map[key] = (map[key] || 0) + (d.vendaEfetiva ? d.valorTotal : 0);
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value }));
+  }, [filteredDeals]);
+
+  // Agrupamento por Vendedor
+  const sellerDistribution = useMemo(() => {
+    const map = {};
+    filteredDeals.forEach(d => {
+      const v = d.vendedor || "Indicação";
+      map[v] = (map[v] || 0) + (d.vendaEfetiva ? d.valorTotal : 0);
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value }));
+  }, [filteredDeals]);
+
+  // Estado do Simulador What-If
+  const [simNovConversion, setSimNovConversion] = useState(30);
+  const [simRecurrenceShare, setSimRecurrenceShare] = useState(100);
+
+  // Cálculos do Simulador (Novembro/2026: Terrafos + Ferpam = R$ 35.202,84)
+  const simulatorCalc = useMemo(() => {
+    const novOpenQuotes = deals.filter(d => d.ano === 2026 && d.competencia === 'NOV' && !d.vendaEfetiva);
+    const totalNovOpen = novOpenQuotes.reduce((acc, d) => acc + d.valorTotal, 0);
+    const valorConvertido = totalNovOpen * (simNovConversion / 100);
+    const valorRecorrenteARR = valorConvertido * (simRecurrenceShare / 100);
+    const mrrGerado = valorRecorrenteARR / 12;
+    const baseHospitalOlhos = 2750.00; // MRR existente de contrato garantido
+    const novoMrrTotal = baseHospitalOlhos + mrrGerado;
+    const arrTotal2027 = novoMrrTotal * 12;
+
+    return {
+      totalNovOpen,
+      valorConvertido,
+      valorRecorrenteARR,
+      mrrGerado,
+      baseHospitalOlhos,
+      novoMrrTotal,
+      arrTotal2027
+    };
+  }, [deals, simNovConversion, simRecurrenceShare]);
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-white">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border transition-all duration-300 ${
+          toast.type === 'error' ? 'bg-rose-950/90 border-rose-800 text-rose-200' : 'bg-emerald-950/90 border-emerald-800 text-emerald-200'
+        }`}>
+          {toast.type === 'error' ? <AlertCircle className="w-5 h-5 text-rose-400" /> : <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
+          <span className="text-sm font-medium">{toast.message}</span>
+        </div>
+      )}
+
+      {/* Top Header */}
+      <header className="border-b border-slate-800 bg-slate-900/70 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-teal-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-cyan-950/50">
+            <Layers className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold tracking-tight text-white">LÜSTER FACHADAS</h1>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-800 text-cyan-400 font-mono">Gestão Comercial</span>
+            </div>
+            <p className="text-xs text-slate-400">Controle Comercial, Funil de Vendas & Plano Anual (2022–2026)</p>
+          </div>
+        </div>
+
+        {/* Global Controls & Actions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Year selector */}
+          <div className="flex bg-slate-800/80 p-1 rounded-xl border border-slate-700">
+            {['2026', '2025', 'TODOS'].map((yr) => (
+              <button
+                key={yr}
+                onClick={() => setSelectedYear(yr)}
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  selectedYear === yr
+                    ? 'bg-cyan-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {yr === 'TODOS' ? 'Histórico Total' : yr}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition shadow-lg shadow-emerald-950/40"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Orçamento
+          </button>
+
+          <button
+            onClick={handleExportCSV}
+            title="Exportar dados para CSV / Excel"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={handleResetData}
+            title="Restaurar dados originais da planilha"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-cyan-400 border border-slate-700 transition"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* Main Navigation Tabs */}
+      <div className="border-b border-slate-800/80 bg-slate-900/30 px-4 lg:px-8">
+        <nav className="flex space-x-2 overflow-x-auto py-2 scrollbar-none">
+          {[
+            { id: 'dashboard', label: 'Dashboard & Indicadores', icon: LayoutDashboard },
+            { id: 'table', label: 'Movimentações Comerciais', icon: TableIcon, badge: filteredDeals.length },
+            { id: 'kanban', label: 'Funil de Vendas (Kanban)', icon: Kanban },
+            { id: 'simulator', label: 'Simulador What-If & Recorrência', icon: Calculator },
+            { id: 'history', label: 'Histórico 2022–2026', icon: TrendingUp }
+          ].map(tab => {
+            const Icon = tab.icon;
+            const active = currentTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setCurrentTab(tab.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                  active
+                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-semibold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${active ? 'text-cyan-400' : 'text-slate-500'}`} />
+                {tab.label}
+                {tab.badge !== undefined && (
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${active ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-400'}`}>
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Container Principal */}
+      <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+        {/* ======================================================== */}
+        {/* ABA 1: DASHBOARD & INDICADORES CHAVE                     */}
+        {/* ======================================================== */}
+        {currentTab === 'dashboard' && (
+          <div className="space-y-6">
+            {/* Meta Anual Banner */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 border border-slate-800 relative overflow-hidden">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-cyan-400" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Desempenho Comercial {selectedYear}</span>
+                  </div>
+                  <div className="flex items-baseline gap-3">
+                    <h2 className="text-2xl font-black text-white">{formatBRL(stats.totalVendido)}</h2>
+                    <span className="text-xs text-slate-400">de meta anual de {formatBRL(stats.metaAnual)}</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 max-w-md space-y-1.5">
+                  <div className="flex justify-between text-xs font-medium">
+                    <span className="text-slate-300">Atingimento da Meta</span>
+                    <span className={`font-bold ${stats.atingimentoMetaPct >= 100 ? 'text-emerald-400' : 'text-cyan-400'}`}>
+                      {stats.atingimentoMetaPct.toFixed(1)}% {stats.atingimentoMetaPct >= 100 && '🚀 SUPERADA!'}
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700/60">
+                    <div
+                      className={`h-full transition-all duration-700 ${
+                        stats.atingimentoMetaPct >= 100
+                          ? 'bg-gradient-to-r from-teal-500 to-emerald-400'
+                          : 'bg-gradient-to-r from-cyan-600 to-cyan-400'
+                      }`}
+                      style={{ width: `${Math.min(stats.atingimentoMetaPct, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid de Cards de Métricas Principais (Corrigido sem duplicidade!) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 hover:border-slate-700 transition">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+                  <span>Volume Orçado</span>
+                  <FileText className="w-4 h-4 text-slate-500" />
+                </div>
+                <div className="text-xl font-bold text-slate-100">{formatBRL(stats.totalOrcado)}</div>
+                <div className="text-[11px] text-slate-500 mt-1">{stats.totalOrcamentos} propostas emitidas</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 hover:border-emerald-800/50 transition">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+                  <span>Vendas Fechadas</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div className="text-xl font-bold text-emerald-400">{formatBRL(stats.totalVendido)}</div>
+                <div className="text-[11px] text-slate-400 mt-1">{stats.qtdVendas} negócios aprovados</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 hover:border-cyan-800/50 transition">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+                  <span>Ticket Médio Real</span>
+                  <Percent className="w-4 h-4 text-cyan-400" />
+                </div>
+                <div className="text-xl font-bold text-cyan-400">{formatBRL(stats.ticketMedio)}</div>
+                <div className="text-[11px] text-slate-500 mt-1">por negócio fechado</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 hover:border-amber-800/50 transition">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+                  <span>Taxa Conversão R$</span>
+                  <ArrowUpRight className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="text-xl font-bold text-amber-400">{stats.convValorPct.toFixed(1)}%</div>
+                <div className="text-[11px] text-slate-500 mt-1">{stats.convVolumePct.toFixed(1)}% em volume de propostas</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 hover:border-purple-800/50 transition">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+                  <span>Área Revitalizada</span>
+                  <Building className="w-4 h-4 text-purple-400" />
+                </div>
+                <div className="text-xl font-bold text-purple-400">{stats.m2Vendido.toLocaleString('pt-BR')} m²</div>
+                <div className="text-[11px] text-slate-500 mt-1">Preço médio: {formatBRL(stats.reaisPorM2)}/m²</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 hover:border-teal-800/50 transition">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+                  <span>Plano Anual (Contratos)</span>
+                  <Sparkles className="w-4 h-4 text-teal-400" />
+                </div>
+                <div className="text-xl font-bold text-teal-400">{formatBRL(stats.totalPlanoAnual)}</div>
+                <div className="text-[11px] text-slate-500 mt-1">Recorrência garantida</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 hover:border-blue-800/50 transition">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+                  <span>Faturamento com NF</span>
+                  <FileText className="w-4 h-4 text-blue-400" />
+                </div>
+                <div className="text-xl font-bold text-blue-400">{formatBRL(stats.totalComNF)}</div>
+                <div className="text-[11px] text-slate-500 mt-1">{stats.vendasComNFCount} vendas com nota fiscal</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 hover:border-rose-800/50 transition">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+                  <span>Provisão Simples (6%)</span>
+                  <DollarSign className="w-4 h-4 text-rose-400" />
+                </div>
+                <div className="text-xl font-bold text-rose-400">{formatBRL(stats.impostoSimples)}</div>
+                <div className="text-[11px] text-slate-500 mt-1">Tributo estimado sobre NF</div>
+              </div>
+            </div>
+
+            {/* Gráficos Interativos (Renderizados nativamente com SVG interativo) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Gráfico de Barras Mensais (Orçado vs Vendido por Competência Real) */}
+              <div className="lg:col-span-2 p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-cyan-400" />
+                      Evolução Mensal: Orçado vs. Vendido ({selectedYear})
+                    </h3>
+                    <p className="text-xs text-slate-400">Competência comercial real de JAN a DEZ</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded-sm bg-slate-700"></span>
+                      <span className="text-slate-400">Orçado</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded-sm bg-cyan-400"></span>
+                      <span className="text-cyan-400 font-semibold">Vendido</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SVG Bar Chart */}
+                <div className="h-64 w-full flex items-end gap-2 pt-6 pb-2 border-b border-slate-800">
+                  {monthlyData.map(m => {
+                    const maxVal = Math.max(...monthlyData.map(d => Math.max(d.orcado, d.vendido, 40000)));
+                    const hOrc = maxVal > 0 ? (m.orcado / maxVal) * 100 : 0;
+                    const hVen = maxVal > 0 ? (m.vendido / maxVal) * 100 : 0;
+
+                    return (
+                      <div key={m.mes} className="flex-1 flex flex-col items-center h-full justify-end group relative">
+                        {/* Tooltip */}
+                        <div className="absolute -top-12 bg-slate-950 border border-slate-700 px-2 py-1 rounded text-[10px] text-white opacity-0 group-hover:opacity-100 transition pointer-events-none z-20 whitespace-nowrap shadow-xl">
+                          <p className="font-bold text-cyan-400">{m.mes}</p>
+                          <p>Orçado: {formatBRL(m.orcado)}</p>
+                          <p>Vendido: {formatBRL(m.vendido)}</p>
+                        </div>
+
+                        <div className="w-full flex items-end justify-center gap-1 h-full">
+                          {/* Barra Orçado */}
+                          <div
+                            style={{ height: `${Math.max(hOrc, 2)}%` }}
+                            className="w-1/2 bg-slate-800 group-hover:bg-slate-700 rounded-t-sm transition-all"
+                          />
+                          {/* Barra Vendido */}
+                          <div
+                            style={{ height: `${Math.max(hVen, 2)}%` }}
+                            className="w-1/2 bg-cyan-500 group-hover:bg-cyan-400 rounded-t-sm transition-all"
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-mono mt-2">{m.mes}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Gráfico de Serviços & Vendedores */}
+              <div className="space-y-6">
+                {/* Categorias de Serviços */}
+                <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
+                    <PieChart className="w-4 h-4 text-emerald-400" />
+                    Receita por Categoria de Serviço
+                  </h3>
+                  <div className="space-y-3">
+                    {serviceDistribution.map(item => {
+                      const pct = stats.totalVendido > 0 ? (item.value / stats.totalVendido) * 100 : 0;
+                      return (
+                        <div key={item.name} className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-slate-300 truncate max-w-[150px]">{item.name}</span>
+                            <span className="text-slate-400 font-medium">{formatBRL(item.value)} ({pct.toFixed(0)}%)</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%` }}></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Desempenho por Vendedor */}
+                <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
+                    <Users className="w-4 h-4 text-purple-400" />
+                    Vendas por Vendedor
+                  </h3>
+                  <div className="space-y-2">
+                    {sellerDistribution.map(item => (
+                      <div key={item.name} className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/60 text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-cyan-950 border border-cyan-800 flex items-center justify-center font-bold text-[10px] text-cyan-400">
+                            {item.name[0]}
+                          </div>
+                          <span className="font-semibold text-slate-200">{item.name}</span>
+                        </div>
+                        <span className="font-mono text-cyan-400 font-bold">{formatBRL(item.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* ABA 2: REGISTRO E CONTROLE DE MOVIMENTAÇÕES (TABELA)     */}
+        {/* ======================================================== */}
+        {currentTab === 'table' && (
+          <div className="space-y-4">
+            {/* Barra de Filtros e Pesquisa */}
+            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                <div className="relative w-full">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Pesquisar por cliente, cidade ou serviço..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              {/* Filtros em Linha */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={filterMonth}
+                  onChange={(e) => setFilterMonth(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="TODOS">Mês: Todos</option>
+                  {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="TODOS">Status: Todos</option>
+                  {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+
+                <select
+                  value={filterSeller}
+                  onChange={(e) => setFilterSeller(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="TODOS">Vendedor: Todos</option>
+                  {SELLERS.map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* Tabela de Lançamentos */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300 border-collapse">
+                  <thead className="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="py-3 px-3">Mês</th>
+                      <th className="py-3 px-3">Cliente / Cidade</th>
+                      <th className="py-3 px-3">Serviço Principal</th>
+                      <th className="py-3 px-3 text-right">M²</th>
+                      <th className="py-3 px-3 text-right">Valor Spot</th>
+                      <th className="py-3 px-3 text-right">Plano Anual</th>
+                      <th className="py-3 px-3 text-right">Total (R$)</th>
+                      <th className="py-3 px-3 text-center">Venda Fechada?</th>
+                      <th className="py-3 px-3 text-center">NF</th>
+                      <th className="py-3 px-3">Status</th>
+                      <th className="py-3 px-3 text-center">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                    {filteredDeals.length === 0 ? (
+                      <tr>
+                        <td colSpan="11" className="py-12 text-center text-slate-500 font-sans">
+                          Nenhum orçamento encontrado com os filtros selecionados.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredDeals.map((deal) => (
+                        <tr key={deal.id} className="hover:bg-slate-800/40 transition">
+                          <td className="py-3 px-3 font-bold text-cyan-400 font-sans">
+                            {deal.competencia} <span className="text-[10px] text-slate-500 font-normal">/{deal.ano}</span>
+                          </td>
+                          <td className="py-3 px-3 font-sans">
+                            <div className="font-semibold text-slate-100">{deal.cliente}</div>
+                            <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-slate-500" />
+                              {deal.cidade} • <span className="text-cyan-400">{deal.vendedor}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 font-sans text-slate-300 max-w-[200px] truncate" title={deal.servico}>
+                            {deal.servico}
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            {deal.m2 > 0 ? (
+                              <span className={deal.m2Estimado ? "text-amber-400" : "text-slate-300"}>
+                                {deal.m2} m² {deal.m2Estimado && <span title="Metragem estimada">*</span>}
+                              </span>
+                            ) : (
+                              <span className="text-slate-600">-</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-right text-slate-300">{formatBRL(deal.valorRevit)}</td>
+                          <td className="py-3 px-3 text-right">
+                            {deal.valorPlanoAnual > 0 ? (
+                              <span className="text-teal-400 font-bold">{formatBRL(deal.valorPlanoAnual)}</span>
+                            ) : (
+                              <span className="text-slate-600">-</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-right font-bold text-slate-100">
+                            {formatBRL(deal.valorTotal)}
+                          </td>
+                          {/* Toggle Venda Efetiva */}
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              onClick={() => handleToggleVenda(deal.id)}
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-sans font-bold transition ${
+                                deal.vendaEfetiva
+                                  ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                                  : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+                              }`}
+                            >
+                              {deal.vendaEfetiva ? 'Sim (1)' : 'Não (0)'}
+                            </button>
+                          </td>
+                          {/* Toggle NF */}
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              onClick={() => handleToggleNF(deal.id)}
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-sans font-bold transition ${
+                                deal.nf
+                                  ? 'bg-blue-950 text-blue-400 border border-blue-800'
+                                  : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+                              }`}
+                            >
+                              {deal.nf ? 'NF Emitida' : 'Sem NF'}
+                            </button>
+                          </td>
+                          {/* Status Badge */}
+                          <td className="py-3 px-3 font-sans">
+                            <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium ${
+                              deal.status === 'Serviço Entregue' ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-800/50' :
+                              deal.status === 'Contrato Fechado' ? 'bg-cyan-900/40 text-cyan-300 border border-cyan-800/50' :
+                              deal.status === 'Em Negociação' ? 'bg-amber-900/40 text-amber-300 border border-amber-800/50' :
+                              deal.status === 'Perdido' ? 'bg-rose-900/40 text-rose-300 border border-rose-800/50' :
+                              'bg-slate-800 text-slate-400'
+                            }`}>
+                              {deal.status}
+                            </span>
+                          </td>
+                          {/* Ações */}
+                          <td className="py-3 px-3 text-center font-sans">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => handleOpenEdit(deal)}
+                                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-cyan-400 transition"
+                                title="Editar"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteDeal(deal.id)}
+                                className="p-1 rounded bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 transition"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* ABA 3: FUNIL DE VENDAS KANBAN                            */}
+        {/* ======================================================== */}
+        {currentTab === 'kanban' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Kanban className="w-5 h-5 text-cyan-400" />
+                  Pipeline Comercial Interativo
+                </h3>
+                <p className="text-xs text-slate-400">Acompanhe e avance as oportunidades comerciais por fase do funil</p>
+              </div>
+            </div>
+
+            {/* Kanban Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {STATUSES.map(colStatus => {
+                const colDeals = filteredDeals.filter(d => d.status === colStatus);
+                const colTotal = colDeals.reduce((acc, d) => acc + d.valorTotal, 0);
+
+                return (
+                  <div key={colStatus} className="bg-slate-900/60 rounded-2xl border border-slate-800 flex flex-col h-[650px] overflow-hidden">
+                    {/* Header Coluna */}
+                    <div className="p-3 border-b border-slate-800 bg-slate-950/50">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-200">{colStatus}</span>
+                        <span className="px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px] font-mono">
+                          {colDeals.length}
+                        </span>
+                      </div>
+                      <div className="text-xs font-mono text-cyan-400 font-bold mt-1">
+                        {formatBRL(colTotal)}
+                      </div>
+                    </div>
+
+                    {/* Cards Container */}
+                    <div className="p-3 flex-1 overflow-y-auto space-y-3 scrollbar-none">
+                      {colDeals.length === 0 ? (
+                        <div className="h-28 flex items-center justify-center text-[11px] text-slate-600 italic">
+                          Sem oportunidades nesta etapa
+                        </div>
+                      ) : (
+                        colDeals.map(card => (
+                          <div
+                            key={card.id}
+                            className="p-3 rounded-xl bg-slate-900 border border-slate-800/80 hover:border-slate-700 transition shadow-sm space-y-2 group"
+                          >
+                            <div className="flex items-start justify-between gap-1">
+                              <h4 className="text-xs font-bold text-slate-100 line-clamp-1">{card.cliente}</h4>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 font-mono font-semibold">
+                                {card.competencia}
+                              </span>
+                            </div>
+
+                            <p className="text-[11px] text-slate-400 line-clamp-2">{card.servico}</p>
+
+                            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60 font-mono">
+                              <span className="font-bold text-slate-200">{formatBRL(card.valorTotal)}</span>
+                              {card.m2 > 0 && <span className="text-slate-500">{card.m2} m²</span>}
+                            </div>
+
+                            {/* Mudança rápida de etapa */}
+                            <div className="pt-2 flex items-center justify-between">
+                              <button
+                                onClick={() => handleOpenEdit(card)}
+                                className="text-[10px] text-slate-500 hover:text-cyan-400"
+                              >
+                                Editar
+                              </button>
+                              <select
+                                value={card.status}
+                                onChange={(e) => {
+                                  const newSt = e.target.value;
+                                  setDeals(prev => prev.map(d => (d.id === card.id ? {
+                                    ...d,
+                                    status: newSt,
+                                    vendaEfetiva: newSt === 'Serviço Entregue' || newSt === 'Contrato Fechado'
+                                  } : d)));
+                                  showToast(`Movido para ${newSt}`);
+                                }}
+                                className="bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none"
+                              >
+                                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* ABA 4: SIMULADOR WHAT-IF & PLANO ANUAL 2027              */}
+        {/* ======================================================== */}
+        {currentTab === 'simulator' && (
+          <div className="space-y-6">
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/30 border border-slate-800 space-y-4">
+              <div className="flex items-center gap-2">
+                <Calculator className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-base font-bold text-white">Simulador de Conversão em Plano Anual (Pipeline de Novembro/2026)</h3>
+              </div>
+              <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
+                Em novembro/2026, a Lüster possui <strong>6 propostas abertas (Terrafos e Ferpam)</strong> totalizando <strong>{formatBRL(simulatorCalc.totalNovOpen)}</strong>.
+                Simule abaixo o impacto no faturamento e no fluxo de caixa recorrente mensal (MRR/ARR) ao converter esses negócios em contratos anuais de manutenção de fachada.
+              </p>
+
+              {/* Sliders Interativos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-300">Taxa de Conversão do Pipeline Nov/2026:</span>
+                    <span className="text-cyan-400 font-mono text-sm">{simNovConversion}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={simNovConversion}
+                    onChange={(e) => setSimNovConversion(Number(e.target.value))}
+                    className="w-full accent-cyan-400 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500">
+                    <span>0% (R$ 0)</span>
+                    <span>50% ({formatBRL(simulatorCalc.totalNovOpen * 0.5)})</span>
+                    <span>100% ({formatBRL(simulatorCalc.totalNovOpen)})</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-300">Proporção Fechada como Plano Anual (12x):</span>
+                    <span className="text-teal-400 font-mono text-sm">{simRecurrenceShare}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="10"
+                    value={simRecurrenceShare}
+                    onChange={(e) => setSimRecurrenceShare(Number(e.target.value))}
+                    className="w-full accent-teal-400 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500">
+                    <span>0% (Venda Spot única)</span>
+                    <span>100% (Contrato de Recorrência 12 Meses)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cards de Resultados do Cenário */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[11px] text-slate-400">Novo Volume Fechado em Nov</div>
+                  <div className="text-lg font-bold text-slate-100 font-mono mt-1">
+                    {formatBRL(simulatorCalc.valorConvertido)}
+                  </div>
+                  <div className="text-[10px] text-slate-500">sobre o pipeline de {formatBRL(simulatorCalc.totalNovOpen)}</div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[11px] text-teal-400 font-medium">Nova Recorrência Mensal (MRR)</div>
+                  <div className="text-lg font-bold text-teal-400 font-mono mt-1">
+                    +{formatBRL(simulatorCalc.mrrGerado)}/mês
+                  </div>
+                  <div className="text-[10px] text-slate-500">injetado diretamente em 2027</div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[11px] text-cyan-400 font-medium">Receita Recorrente Total Garantida</div>
+                  <div className="text-lg font-bold text-cyan-400 font-mono mt-1">
+                    {formatBRL(simulatorCalc.novoMrrTotal)}/mês
+                  </div>
+                  <div className="text-[10px] text-slate-500">inclui Hospital de Olhos ({formatBRL(simulatorCalc.baseHospitalOlhos)})</div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[11px] text-purple-400 font-medium">Previsão Contratada Anual (ARR)</div>
+                  <div className="text-lg font-bold text-purple-400 font-mono mt-1">
+                    {formatBRL(simulatorCalc.arrTotal2027)}/ano
+                  </div>
+                  <div className="text-[10px] text-slate-500">cobertura dos custos fixos da empresa</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Lista dos 6 Orçamentos Alvo em Novembro */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
+              <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                <Target className="w-4 h-4 text-cyan-400" />
+                Carteira Aberta de Novembro/2026 para Fechamento Imediato
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {deals.filter(d => d.ano === 2026 && d.competencia === 'NOV').map(item => (
+                  <div key={item.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+                    <div className="flex justify-between items-start">
+                      <span className="font-bold text-slate-200 text-xs">{item.cliente}</span>
+                      <span className="text-[10px] font-mono font-bold text-cyan-400">{formatBRL(item.valorTotal)}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">{item.servico}</p>
+                    <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
+                      <span>{item.cidade}</span>
+                      <button
+                        onClick={() => handleToggleVenda(item.id)}
+                        className="text-cyan-400 hover:underline font-bold"
+                      >
+                        {item.vendaEfetiva ? 'Desfazer Venda' : 'Simular Fechamento'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* ABA 5: HISTÓRICO CONSOLIDADO (2022 A 2026)               */}
+        {/* ======================================================== */}
+        {currentTab === 'history' && (
+          <div className="space-y-6">
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-cyan-400" />
+                    Consolidado Histórico Comercial Lüster (2022–2026)
+                  </h3>
+                  <p className="text-xs text-slate-400">Dados corrigidos sem a distorção da dupla contagem do Plano Anual</p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300 border-collapse">
+                  <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="py-3 px-3">Ano</th>
+                      <th className="py-3 px-3 text-right">Orçado (R$)</th>
+                      <th className="py-3 px-3 text-center">Orçamentos (#)</th>
+                      <th className="py-3 px-3 text-right">Vendido Total (R$)</th>
+                      <th className="py-3 px-3 text-right">Plano Anual (R$)</th>
+                      <th className="py-3 px-3 text-center">Vendas (#)</th>
+                      <th className="py-3 px-3 text-right">Ticket Médio Real</th>
+                      <th className="py-3 px-3 text-right">Conv. R$ (%)</th>
+                      <th className="py-3 px-3 text-right">Conv. # (%)</th>
+                      <th className="py-3 px-3 text-right">Área (m²)</th>
+                      <th className="py-3 px-3 text-right">R$ / m²</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 font-mono text-[11px]">
+                    {HISTORICAL_DATA.map((row) => (
+                      <tr key={row.ano} className="hover:bg-slate-800/40 transition">
+                        <td className="py-3 px-3 font-bold text-white font-sans">{row.ano}</td>
+                        <td className="py-3 px-3 text-right">{formatBRL(row.orcado)}</td>
+                        <td className="py-3 px-3 text-center">{row.orcamentos}</td>
+                        <td className="py-3 px-3 text-right font-bold text-emerald-400">{formatBRL(row.vendido)}</td>
+                        <td className="py-3 px-3 text-right text-teal-400">{row.planoAnual > 0 ? formatBRL(row.planoAnual) : '-'}</td>
+                        <td className="py-3 px-3 text-center font-bold text-slate-200">{row.vendas}</td>
+                        <td className="py-3 px-3 text-right font-bold text-cyan-400">{formatBRL(row.ticketMedio)}</td>
+                        <td className="py-3 px-3 text-right">{row.convR.toFixed(1)}%</td>
+                        <td className="py-3 px-3 text-right">{row.convQtd.toFixed(1)}%</td>
+                        <td className="py-3 px-3 text-right">{row.m2.toLocaleString('pt-BR')} m²</td>
+                        <td className="py-3 px-3 text-right">{formatBRL(row.rPorM2)}</td>
+                      </tr>
+                    ))}
+                    {/* Linha de Totais Acumulados */}
+                    <tr className="bg-slate-950 font-bold text-slate-100 border-t-2 border-slate-700">
+                      <td className="py-3 px-3 font-sans">TOTAL 5 ANOS</td>
+                      <td className="py-3 px-3 text-right">R$ 1.514.559,16</td>
+                      <td className="py-3 px-3 text-center">300</td>
+                      <td className="py-3 px-3 text-right text-emerald-400">R$ 476.653,74</td>
+                      <td className="py-3 px-3 text-right text-teal-400">R$ 109.666,67</td>
+                      <td className="py-3 px-3 text-center">126</td>
+                      <td className="py-3 px-3 text-right text-cyan-400">R$ 3.782,97</td>
+                      <td className="py-3 px-3 text-right">31,5%</td>
+                      <td className="py-3 px-3 text-right">42,0%</td>
+                      <td className="py-3 px-3 text-right">18.486 m²</td>
+                      <td className="py-3 px-3 text-right">R$ 25,78</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* ======================================================== */}
+      {/* MODAL: NOVO ORÇAMENTO / EDIÇÃO                           */}
+      {/* ======================================================== */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <FileText className="w-5 h-5 text-cyan-400" />
+                {editingDealId ? 'Editar Proposta Comercial' : 'Cadastrar Novo Orçamento / Negócio'}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveForm} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Cliente */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Nome do Cliente / Empresa *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.cliente}
+                    onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
+                    placeholder="Ex: Farmácia São Bento"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                {/* Cidade */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Cidade / UF</label>
+                  <input
+                    type="text"
+                    value={formData.cidade}
+                    onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
+                    placeholder="Ex: Araguaína"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                {/* Competência (Mês) */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Competência (Mês de Referência)</label>
+                  <select
+                    value={formData.competencia}
+                    onChange={(e) => setFormData({ ...formData, competencia: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  >
+                    {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+
+                {/* Ano */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Ano</label>
+                  <select
+                    value={formData.ano}
+                    onChange={(e) => setFormData({ ...formData, ano: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value={2026}>2026</option>
+                    <option value={2025}>2025</option>
+                    <option value={2024}>2024</option>
+                  </select>
+                </div>
+
+                {/* Serviço Principal */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Serviço / Escopo</label>
+                  <select
+                    value={formData.servico}
+                    onChange={(e) => setFormData({ ...formData, servico: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  >
+                    {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+
+                {/* Vendedor */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Vendedor / Responsável</label>
+                  <select
+                    value={formData.vendedor}
+                    onChange={(e) => setFormData({ ...formData, vendedor: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  >
+                    {SELLERS.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+
+                {/* M² e Checkbox M² Estimado */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Metragem da Fachada (m²)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.m2}
+                      onChange={(e) => setFormData({ ...formData, m2: Number(e.target.value) })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500 font-mono"
+                    />
+                    <label className="flex items-center gap-1.5 text-[11px] text-slate-400 whitespace-nowrap cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.m2Estimado}
+                        onChange={(e) => setFormData({ ...formData, m2Estimado: e.target.checked })}
+                        className="rounded border-slate-700 text-cyan-500 focus:ring-0"
+                      />
+                      M² Estimado
+                    </label>
+                  </div>
+                </div>
+
+                {/* Status do Funil */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Status do Funil</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => {
+                      const st = e.target.value;
+                      setFormData({
+                        ...formData,
+                        status: st,
+                        vendaEfetiva: st === 'Serviço Entregue' || st === 'Contrato Fechado'
+                      });
+                    }}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  >
+                    {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+
+                {/* Valor Spot / Revitalização */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Valor Spot / Revitalização (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.valorRevit}
+                    onChange={(e) => setFormData({ ...formData, valorRevit: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                </div>
+
+                {/* Valor Plano Anual */}
+                <div className="space-y-1">
+                  <label className="text-slate-300 font-semibold">Valor Contrato Plano Anual (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.valorPlanoAnual}
+                    onChange={(e) => setFormData({ ...formData, valorPlanoAnual: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Prévia do Valor Total Calculado */}
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <span className="text-slate-400 font-medium">Valor Total da Proposta:</span>
+                <span className="text-base font-bold text-cyan-400 font-mono">
+                  {formatBRL((Number(formData.valorRevit) || 0) + (Number(formData.valorPlanoAnual) || 0))}
+                </span>
+              </div>
+
+              {/* Flags de Venda Efetiva e NF */}
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={formData.vendaEfetiva}
+                    onChange={(e) => setFormData({ ...formData, vendaEfetiva: e.target.checked })}
+                    className="w-4 h-4 rounded border-slate-700 text-emerald-500 focus:ring-0"
+                  />
+                  <span>Venda Efetiva Fechada</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={formData.nf}
+                    onChange={(e) => setFormData({ ...formData, nf: e.target.checked })}
+                    className="w-4 h-4 rounded border-slate-700 text-blue-500 focus:ring-0"
+                  />
+                  <span>Nota Fiscal Emitida (Simples 6%)</span>
+                </label>
+              </div>
+
+              {/* Botões do Rodapé */}
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition shadow-lg shadow-cyan-950/50"
+                >
+                  {editingDealId ? 'Salvar Alterações' : 'Cadastrar Negócio'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="border-t border-slate-900 bg-slate-950 py-4 px-4 text-center text-xs text-slate-500">
+        Lüster Fachadas • Sistema de Gestão Comercial e Inteligência de Vendas • Dados reconciliados 2022–2026
+      </footer>
+    </div>
+  );
+}
