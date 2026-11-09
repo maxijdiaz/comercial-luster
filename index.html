@@ -1893,3 +1893,64 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+Luster_Gestao_Comercial_PWA-v2
+ ZIP 
+[09/11/2026 - 10:34 -03]
+
+Esta versão -v2 aprimora a estrutura anterior para funcionar de forma 100% autônoma direto no Google Chrome (PC ou Android), trazendo todos os 301 registros históricos da planilha (2022 a 2026) pré-carregados no cache interno e um módulo dedicado de Impressão de Relatórios de Gestão em A4 / Exportação em PDF.   
+Luster_Gestao_Comercial_PWA.zip
++ 1
+
+Principais Recursos da Versão Executável (-v2)
+1. Execução Direta no Chrome / Android e Armazenamento em Cache (localStorage)
+Arquivo Único Autônomo (Luster_Gestao_Comercial_App-v2.html): Possui manifesto PWA dinâmico e ícones embutidos em Base64 no próprio código. Basta abrir o arquivo no Google Chrome do celular Android ou do computador para utilizá-lo imediatamente ou instalá-lo na tela inicial (botão 📲 Instalar no Android / Chrome).
+
+Pacote para Publicação Web (Luster_Gestao_Comercial_PWA-v2.zip): Inclui index.html, manifest.json, sw.js e ícones PNG pronto para arrastar no Netlify Drop ou publicar no GitHub Pages.   
+Luster_Gestao_Comercial_PWA.zip
++ 1
+
+Memória de Cache Persistente com Medidor em Tempo Real:
+
+Cada novo orçamento, alteração de status ou ajuste de meta é gravado instantaneamente no cache do navegador (localStorage sob a chave luster_comercial_db_v2).
+
+O cabeçalho exibe em tempo real a quantidade de registros, o espaço ocupado em KB no cache e o horário da última sincronização (Cache Ativo: 301 registros • Sinc.: HH:MM).
+
+Botões de 💾 Backup Cache (JSON), 📂 Importar e 📊 CSV permitem transferir o banco de dados entre o celular e o computador em segundos.   
+Luster_Gestao_Comercial_App.html
+
+2. Dashboard de Indicadores Comerciais e Comissões
+Histórico Completo (2022 a 2027): Permite filtrar individualmente 2026, 2025, 2024, 2023, 2022, 2027 (Futuro), Consolidado 2025–2027 ou a Série Histórica Completa (2022–2027).
+
+KPIs Reconciliados (Sem Dupla Contagem e Sem #DIV/0!):
+
+Receita Total Aprovada (Avulso + Plano Anual) comparada à Meta Anual configurável (R$ 120.000,00 por padrão).
+
+Taxa de Conversão Real (Financeira em R$ e por Volume em # de vendas), Ticket Médio Real, Taxa de Assinatura Recorrente (%) e Produtividade Financeira por Área (R$/m²).
+
+
+Luster_Gestao_Comercial_App.html
+Painel de Desempenho por Vendedor, Imposto NF e Comissões:
+
+Nova tabela automática no Dashboard que agrupa propostas e vendas por vendedor (Max, Panda, Pablo, etc.), calculando automaticamente a Comissão Estimada (padrão 7%, editável), o Imposto de Nota Fiscal (padrão 6%, editável) e o Saldo Líquido da Lüster.
+
+3. Central de Impressão de Relatórios de Gestão (A4 / PDF)
+Foi adicionada a aba 🖨️ Relatórios de Gestão (Imprimir / PDF) (além do botão rápido 🖨️ Imprimir Relatório no topo da tela), com formatação executiva limpa (@media print em fundo branco de alto contraste, cabeçalho corporativo LÜSTER SERVIÇOS INTEGRADOS LTDA — CREA-TO, controle automático de quebra de página e bloco de assinaturas):
+
+Modelo 1 — Relatório Executivo Completo: Imprime os 6 cartões de KPIs, o Parecer da Diretoria, a tabela de Fechamento Mensal (JAN a DEZ), o Ranking de Vendedores/Comissões, a Projeção Mensal do Simulador 2027 e a relação de contratos fechados.
+
+Modelo 2 — Resumo de Indicadores e Fechamento Mensal (Dashboard): Ideal para reuniões mensais de S&OP, contendo apenas os quadros sintéticos de metas, conversão mensal e projeção 2027 (cabe em 1 a 2 páginas A4).
+
+Modelo 3 — Relatório de Pipeline Comercial & Orçamentos em Aberto (Follow-up): Lista todos os orçamentos ainda não convertidos do período selecionado, ordenados automaticamente do maior para o menor valor (destacando contas-chave como Shopping Lago Center, Terrafos e Nosso Lar) para orientar a cobrança de retorno.
+
+Modelo 4 — Relatório de Vendas Faturadas, Notas Fiscais e Comissões: Relação detalhada apenas das vendas efetivas (Venda = 1), status de emissão de NF e apuração de comissões por vendedor.
+
+Impressão de Ficha Individual por Cliente (🖨️ na Tabela de Registros): Na aba Registros no Cache, cada linha possui um botão 🖨️ que gera e imprime uma Ficha de Registro Comercial / Ordem de Serviço individual de 1 página para o respectivo cliente.
+
+Para expandir ainda mais o seu aplicativo de gestão comercial:
+
+Integrar calculadora de custos e margem líquida por serviço
+
+Incluir alerta de vencimento de ciclos de manutenção anual
+
+Gerar planilha Excel (.xlsx) formatada com os relatórios
